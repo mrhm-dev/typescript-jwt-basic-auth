@@ -29,7 +29,7 @@ export const signup = catchAsync(async (req: Request, res: Response) => {
 		email: req.body.email,
 		password: req.body.password,
 	});
-	
+
 	if (!error) {
 		await User.create({
 			name: value.name,
@@ -66,6 +66,13 @@ export const login = catchAsync(
 			const user: any = await User.findOne({
 				email,
 			}).select("+password");
+
+			if (
+				!user ||
+				!(await user.correctPassword(password, user.password))
+			) {
+				return next(new AppError("Incorrect email or password", 401));
+			}
 
 			const token = signToken(user._id);
 
